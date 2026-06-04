@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بيت الخبرة — لوحة التحكم</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0D1B2A;color:#E0E8F5;min-height:100vh;}
+/* Header */
+.header{background:linear-gradient(135deg,#1E3A5F,#0D2840);padding:1rem 1.5rem;display:flex;align-items:center;gap:1rem;border-bottom:1px solid rgba(30,136,229,0.3);}
+.header-logo{width:44px;height:44px;border-radius:8px;background:#1E88E5;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.header-title{font-size:18px;font-weight:700;color:#E3F2FD;}
+.header-sub{font-size:12px;color:#90CAF9;margin-top:2px;}
+.header-user{margin-right:auto;font-size:13px;color:#90CAF9;display:flex;align-items:center;gap:0.5rem;}
+.btn-logout{background:rgba(229,57,53,0.15);color:#EF9A9A;border:1px solid rgba(229,57,53,0.3);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;}
+.btn-logout:hover{background:rgba(229,57,53,0.25);}
+/* Login */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:calc(100vh - 66px);}
+.login-card{background:rgba(255,255,255,0.05);border:1px solid rgba(30,136,229,0.2);border-radius:20px;padding:2.5rem;width:100%;max-width:380px;margin:1rem;}
+.login-card h2{font-size:22px;color:#E3F2FD;margin-bottom:0.5rem;}
+.login-card p{font-size:13px;color:#90CAF9;margin-bottom:2rem;}
+.field{margin-bottom:1.25rem;}
+.field label{display:block;font-size:13px;color:#90CAF9;margin-bottom:0.4rem;}
+.field input{width:100%;padding:0.8rem 1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(30,136,229,0.3);border-radius:10px;color:#E0E8F5;font-size:15px;font-family:inherit;outline:none;}
+.field input:focus{border-color:#1E88E5;background:rgba(30,136,229,0.08);}
+.btn-primary{width:100%;padding:0.9rem;background:linear-gradient(135deg,#1E88E5,#1565C0);color:#fff;border:none;border-radius:12px;font-size:16px;font-family:inherit;font-weight:700;cursor:pointer;transition:opacity 0.2s;}
+.btn-primary:hover{opacity:0.9;}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;}
+.login-err{background:rgba(229,57,53,0.1);color:#EF9A9A;border:1px solid rgba(229,57,53,0.3);border-radius:8px;padding:0.7rem 1rem;font-size:13px;margin-bottom:1rem;display:none;}
+/* Dashboard */
+#dashboard{display:none;padding:1.5rem;}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:0.75rem;margin-bottom:1.5rem;}
+.stat{background:rgba(255,255,255,0.05);border:1px solid rgba(30,136,229,0.15);border-radius:14px;padding:1rem;text-align:center;}
+.stat-num{font-size:28px;font-weight:800;color:#1E88E5;}
+.stat-label{font-size:12px;color:#90CAF9;margin-top:4px;}
+.toolbar{display:flex;gap:0.75rem;margin-bottom:1rem;align-items:center;flex-wrap:wrap;}
+.search-box{flex:1;min-width:180px;padding:0.7rem 1rem;background:rgba(255,255,255,0.06);border:1px solid rgba(30,136,229,0.25);border-radius:10px;color:#E0E8F5;font-size:14px;font-family:inherit;outline:none;}
+.search-box:focus{border-color:#1E88E5;}
+.filter-sel{padding:0.7rem 0.75rem;background:rgba(255,255,255,0.06);border:1px solid rgba(30,136,229,0.25);border-radius:10px;color:#E0E8F5;font-size:13px;font-family:inherit;outline:none;cursor:pointer;}
+.refresh-btn{padding:0.7rem 1rem;background:rgba(30,136,229,0.15);color:#90CAF9;border:1px solid rgba(30,136,229,0.25);border-radius:10px;cursor:pointer;font-family:inherit;font-size:13px;}
+.refresh-btn:hover{background:rgba(30,136,229,0.25);}
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:14px;border:1px solid rgba(30,136,229,0.15);}
+table{width:100%;border-collapse:collapse;}
+thead{background:rgba(30,136,229,0.1);}
+th{padding:0.8rem 0.75rem;font-size:12px;color:#90CAF9;font-weight:600;text-align:right;white-space:nowrap;border-bottom:1px solid rgba(30,136,229,0.15);}
+td{padding:0.75rem;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(30,136,229,0.04);}
+.code-badge{background:rgba(30,136,229,0.15);color:#90CAF9;padding:3px 8px;border-radius:6px;font-family:monospace;font-size:12px;letter-spacing:1px;}
+.status-sel{background:rgba(255,255,255,0.06);border:1px solid rgba(30,136,229,0.2);border-radius:8px;color:#E0E8F5;padding:5px 8px;font-size:12px;font-family:inherit;cursor:pointer;outline:none;min-width:120px;}
+.notes-inp{background:rgba(255,255,255,0.06);border:1px solid rgba(30,136,229,0.2);border-radius:8px;color:#E0E8F5;padding:5px 8px;font-size:12px;font-family:inherit;outline:none;width:100%;min-width:150px;}
+.notes-inp:focus,.status-sel:focus{border-color:#1E88E5;}
+.save-btn{background:rgba(76,175,80,0.15);color:#A5D6A7;border:1px solid rgba(76,175,80,0.3);padding:5px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:inherit;white-space:nowrap;}
+.save-btn:hover{background:rgba(76,175,80,0.25);}
+.save-btn.saving{opacity:0.5;cursor:not-allowed;}
+.save-btn.saved{background:rgba(76,175,80,0.3);color:#81C784;}
+.file-link{color:#64B5F6;font-size:12px;text-decoration:none;}
+.file-link:hover{text-decoration:underline;}
+.empty{text-align:center;padding:3rem;color:#546E7A;font-size:14px;}
+/* Status badge */
+.s-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.s-new{background:rgba(30,136,229,0.15);color:#90CAF9;}
+.s-prog{background:rgba(255,152,0,0.15);color:#FFCC80;}
+.s-done{background:rgba(76,175,80,0.15);color:#A5D6A7;}
+.s-hold{background:rgba(229,57,53,0.15);color:#EF9A9A;}
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1B5E20;color:#A5D6A7;padding:0.75rem 1.25rem;border-radius:12px;font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.3s;z-index:999;}
+.toast.show{opacity:1;}
+@media(max-width:768px){
+  th:nth-child(4),td:nth-child(4),th:nth-child(6),td:nth-child(6){display:none;}
+  .header-user span:first-child{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🏗️</div>
+  <div>
+    <div class="header-title">بيت الخبرة</div>
+    <div class="header-sub">لوحة متابعة المشاريع</div>
+  </div>
+  <div class="header-user" id="user-info" style="display:none;">
+    <span id="client-count">0 عميل</span>
+    <button class="btn-logout" onclick="logout()">خروج</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <h2>🔐 تسجيل الدخول</h2>
+    <p>ادخل كلمة المرور للوصول للوحة التحكم</p>
+    <div id="login-err" class="login-err">كلمة المرور غلط، حاول تاني.</div>
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input type="password" id="pass-input" placeholder="••••••••••" onkeydown="if(event.key==='Enter') doLogin()" />
+    </div>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">دخول →</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="stats" id="stats-row">
+    <div class="stat"><div class="stat-num" id="s-total">0</div><div class="stat-label">إجمالي العملاء</div></div>
+    <div class="stat"><div class="stat-num" id="s-new" style="color:#90CAF9">0</div><div class="stat-label">جديد</div></div>
+    <div class="stat"><div class="stat-num" id="s-prog" style="color:#FFCC80">0</div><div class="stat-label">قيد التنفيذ</div></div>
+    <div class="stat"><div class="stat-num" id="s-done" style="color:#A5D6A7">0</div><div class="stat-label">مكتمل</div></div>
+  </div>
+
+  <div class="toolbar">
+    <input class="search-box" id="search" placeholder="🔍  ابحث بالاسم أو الهاتف أو الكود..." oninput="renderTable()" />
+    <select class="filter-sel" id="filter-status" onchange="renderTable()">
+      <option value="">كل الحالات</option>
+      <option>جديد</option>
+      <option>قيد الدراسة</option>
+      <option>قيد التنفيذ</option>
+      <option>منتظر مستندات</option>
+      <option>مكتمل</option>
+      <option>معلق</option>
+    </select>
+    <button class="refresh-btn" onclick="loadClients()">🔄 تحديث</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>الكود</th>
+          <th>الاسم</th>
+          <th>الهاتف</th>
+          <th>المدينة</th>
+          <th>الخدمة</th>
+          <th>ملف</th>
+          <th>حالة المشروع</th>
+          <th>ملاحظات</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="clients-body">
+        <tr><td colspan="9" class="empty">⏳ جاري التحميل…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var API = 'https://uwwjzxzkdxerloiqpykj.supabase.co/functions/v1/admin-panel';
+var pass = '';
+var allClients = [];
+
+function showToast(msg, ok) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = ok ? '#1B5E20' : '#7F1D1D';
+  t.style.color = ok ? '#A5D6A7' : '#FCA5A5';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2500);
+}
+
+async function doLogin() {
+  var p = document.getElementById('pass-input').value;
+  if (!p) return;
+  var btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'جاري التحقق…';
+  document.getElementById('login-err').style.display = 'none';
+  try {
+    var r = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({password:p, action:'list'})});
+    var data = await r.json();
+    if (!data.ok) { document.getElementById('login-err').style.display='block'; btn.disabled=false; btn.textContent='دخول →'; return; }
+    pass = p;
+    allClients = data.clients || [];
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('user-info').style.display = 'flex';
+    updateStats(); renderTable();
+  } catch(e) {
+    document.getElementById('login-err').style.display='block';
+  }
+  btn.disabled=false; btn.textContent='دخول →';
+}
+
+async function loadClients() {
+  try {
+    var r = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pass, action:'list'})});
+    var data = await r.json();
+    if (data.ok) { allClients = data.clients || []; updateStats(); renderTable(); showToast('✓ تم التحديث', true); }
+  } catch(e) { showToast('حصل خطأ في التحميل', false); }
+}
+
+function updateStats() {
+  var n=allClients.length, nw=0, pr=0, dn=0;
+  allClients.forEach(function(c){ if(c.project_status==='جديد')nw++; else if(c.project_status==='قيد التنفيذ')pr++; else if(c.project_status==='مكتمل')dn++; });
+  document.getElementById('s-total').textContent=n;
+  document.getElementById('s-new').textContent=nw;
+  document.getElementById('s-prog').textContent=pr;
+  document.getElementById('s-done').textContent=dn;
+  document.getElementById('client-count').textContent=n+' عميل';
+}
+
+function statusBadge(s) {
+  var cls='s-new';
+  if(s==='قيد التنفيذ'||s==='قيد الدراسة'||s==='منتظر مستندات')cls='s-prog';
+  else if(s==='مكتمل')cls='s-done';
+  else if(s==='معلق')cls='s-hold';
+  return '<span class="s-badge '+cls+'">'+s+'</span>';
+}
+
+function renderTable() {
+  var q = document.getElementById('search').value.trim().toLowerCase();
+  var fs = document.getElementById('filter-status').value;
+  var filtered = allClients.filter(function(c){
+    if(fs && c.project_status !== fs) return false;
+    if(q) return (c.name||'').toLowerCase().includes(q)||(c.phone||'').includes(q)||(c.code||'').toLowerCase().includes(q)||(c.service||'').includes(q);
+    return true;
+  });
+  var tbody = document.getElementById('clients-body');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="9" class="empty">لا يوجد عملاء مطابقين</td></tr>'; return;}
+  tbody.innerHTML = filtered.map(function(c){
+    var statOpts = ['جديد','قيد الدراسة','قيد التنفيذ','منتظر مستندات','مكتمل','معلق'].map(function(o){return '<option'+(o===c.project_status?' selected':'')+'>'+o+'</option>';}).join('');
+    var fileCell = c.file_url ? '<a href="'+c.file_url+'" target="_blank" class="file-link">📎 ملف</a>' : '<span style="color:#546E7A">—</span>';
+    var dt = c.created_at ? new Date(c.created_at).toLocaleDateString('ar-EG') : '—';
+    return '<tr id="row-'+c.code+'">'+
+      '<td><span class="code-badge">'+c.code+'</span><br><small style="color:#546E7A;font-size:11px">'+dt+'</small></td>'+
+      '<td><b>'+c.name+'</b>'+(c.email?'<br><small style="color:#546E7A">'+c.email+'</small>':'')+'</td>'+
+      '<td>'+c.phone+'</td>'+
+      '<td>'+(c.city||'—')+'</td>'+
+      '<td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+(c.service||'')+'">'+( c.service||'—')+'</td>'+
+      '<td>'+fileCell+'</td>'+
+      '<td><select class="status-sel" id="status-'+c.code+'">'+statOpts+'</select></td>'+
+      '<td><input class="notes-inp" id="notes-'+c.code+'" value="'+(c.project_notes||'')+'" placeholder="ملاحظة…" /></td>'+
+      '<td><button class="save-btn" id="savebtn-'+c.code+'" onclick="saveClient(\''+c.code+'\')">حفظ</button></td>'+
+    '</tr>';
+  }).join('');
+}
+
+async function saveClient(code) {
+  var statusEl = document.getElementById('status-'+code);
+  var notesEl  = document.getElementById('notes-'+code);
+  var btn      = document.getElementById('savebtn-'+code);
+  if(!statusEl||!notesEl||!btn) return;
+  btn.className='save-btn saving'; btn.textContent='جاري…'; btn.disabled=true;
+  try {
+    var r = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pass, action:'update', code:code, status:statusEl.value, notes:notesEl.value})});
+    var data = await r.json();
+    if(data.ok){
+      btn.className='save-btn saved'; btn.textContent='✓ تم';
+      var c = allClients.find(function(x){return x.code===code;});
+      if(c){ c.project_status=statusEl.value; c.project_notes=notesEl.value; }
+      updateStats();
+      showToast('✓ تم حفظ التغييرات لـ '+code, true);
+      setTimeout(function(){btn.className='save-btn';btn.textContent='حفظ';btn.disabled=false;},2000);
+    } else { throw new Error('failed'); }
+  } catch(e) {
+    btn.className='save-btn'; btn.textContent='خطأ!'; btn.disabled=false;
+    showToast('حصل خطأ في الحفظ', false);
+    setTimeout(function(){btn.textContent='حفظ';},2000);
+  }
+}
+
+function logout(){
+  pass=''; allClients=[];
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('user-info').style.display='none';
+  document.getElementById('pass-input').value='';
+}
+</script>
+</body>
+</html>
