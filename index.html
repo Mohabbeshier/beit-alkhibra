@@ -4487,14 +4487,16 @@ body::before{ display:none !important; }
   function val(id){ var el=document.getElementById(id); return el?el.value.trim():''; }
 
   async function uploadFile(file){
-    var ext = (file.name.split('.').pop()||'bin').toLowerCase();
-    var path = Date.now()+'-'+Math.random().toString(36).slice(2)+'.'+ext;
-    var resp = await fetch(SUPA_URL+'/storage/v1/object/client-files/'+path,{
-      method:'POST', body:file,
-      headers:{'Authorization':'Bearer '+SUPA_ANON,'Content-Type':file.type||'application/octet-stream','x-upsert':'false'}
+    var fd = new FormData();
+    fd.append('file', file, file.name);
+    var resp = await fetch(SUPA_URL+'/functions/v1/lead-upload',{
+      method:'POST', body:fd,
+      headers:{'Authorization':'Bearer '+SUPA_ANON}
     });
-    if(!resp.ok) throw new Error('upload '+resp.status);
-    return SUPA_URL+'/storage/v1/object/public/client-files/'+path;
+    var j = {};
+    try{ j = await resp.json(); }catch(e){}
+    if(!resp.ok || !j.ok) throw new Error((j && j.error) ? j.error : ('upload '+resp.status));
+    return j.url;
   }
 
   window.bxHandleNew = async function(){
