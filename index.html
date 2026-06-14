@@ -5008,6 +5008,117 @@ body::before{ display:none !important; }
 })();
 </script>
 
+<script id="form-smart">
+/* smart form: progress bar + autosave draft + instant validation */
+(function(){
+  var FORM_ID='new-client-form', DRAFT_KEY='bx_form_draft';
+  var TEXT_IDS=['name','phone','client-email','city-detail','message'];
+  var SEL_IDS=['type','governorate'];
+  function form(){ return document.getElementById(FORM_ID); }
+  function el(id){ return document.getElementById(id); }
+
+  if(!document.getElementById('form-smart-css')){
+    var st=document.createElement('style'); st.id='form-smart-css';
+    st.textContent=''
+      +'.fp-wrap{margin:0 0 1.2rem}'
+      +'.fp-track{height:6px;border-radius:99px;background:var(--bg-3);overflow:hidden}'
+      +'.fp-bar{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .35s ease}'
+      +'.fp-label{font-size:12px;color:var(--muted);margin-top:6px;font-weight:600}'
+      +'.fp-label b{color:var(--green-dark)}'
+      +'#new-client-form input.ok,#new-client-form select.ok{border-color:var(--green)!important}'
+      +'#new-client-form input.bad,#new-client-form select.bad{border-color:var(--red)!important}';
+    document.head.appendChild(st);
+  }
+
+  function ensureBar(){
+    var f=form(); if(!f||el('form-progress-wrap')) return;
+    var w=document.createElement('div'); w.className='fp-wrap'; w.id='form-progress-wrap';
+    w.innerHTML='<div class="fp-track"><div class="fp-bar" id="form-progress-bar"></div></div>'
+      +'<div class="fp-label" id="form-progress-label"></div>';
+    var hh=f.querySelector('h3');
+    if(hh&&hh.parentNode){ hh.parentNode.insertBefore(w, hh.nextSibling); } else { f.insertBefore(w, f.firstChild); }
+  }
+
+  function phoneDigits(v){ return (v||'').replace(/[^0-9]/g,''); }
+  function emailOk(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function checkedServices(){ return document.querySelectorAll('#services-group input:checked').length; }
+
+  function refresh(){
+    var f=form(); if(!f) return;
+    var done=0, total=5;
+    if(el('name')&&el('name').value.trim()) done++;
+    if(el('phone')&&phoneDigits(el('phone').value).length>=8) done++;
+    if(el('type')&&el('type').value) done++;
+    if(el('governorate')&&el('governorate').value) done++;
+    if(checkedServices()>0) done++;
+    var pct=Math.round(done/total*100);
+    var bar=el('form-progress-bar'), lab=el('form-progress-label');
+    if(bar) bar.style.width=pct+'%';
+    if(lab){
+      var en=document.body.classList.contains('lang-en');
+      if(pct>=100) lab.innerHTML = en?'<b>Ready to send ✓</b>':'<b>جاهز للإرسال ✓</b>';
+      else lab.textContent = en?('Completed '+pct+'%'):('اكتمل '+pct+'%');
+    }
+  }
+
+  function mark(id, ok){ var e=el(id); if(!e) return; e.classList.remove('ok','bad'); if(e.value.trim()!=='') e.classList.add(ok?'ok':'bad'); }
+  function validateField(id){
+    var e=el(id); if(!e) return;
+    if(id==='name'){ mark('name', e.value.trim().length>=2); }
+    else if(id==='phone'){ mark('phone', phoneDigits(e.value).length>=8); }
+    else if(id==='client-email'){ e.classList.remove('ok','bad'); var v=e.value.trim(); if(v!=='') e.classList.add(emailOk(v)?'ok':'bad'); }
+    else if(id==='type'||id==='governorate'){ e.classList.remove('ok','bad'); if(e.value) e.classList.add('ok'); }
+  }
+
+  function saveDraft(){
+    try{
+      var d={t:{},s:{},chk:[]};
+      for(var i=0;i<TEXT_IDS.length;i++){ var e=el(TEXT_IDS[i]); if(e) d.t[TEXT_IDS[i]]=e.value; }
+      for(var j=0;j<SEL_IDS.length;j++){ var s=el(SEL_IDS[j]); if(s) d.s[SEL_IDS[j]]=s.value; }
+      var cs=document.querySelectorAll('#services-group input:checked');
+      for(var k=0;k<cs.length;k++) d.chk.push(cs[k].value);
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+    }catch(e){}
+  }
+  function clearDraft(){ try{ localStorage.removeItem(DRAFT_KEY); }catch(e){} }
+  function restoreDraft(){
+    var raw; try{ raw=localStorage.getItem(DRAFT_KEY); }catch(e){ return; }
+    if(!raw) return;
+    var d; try{ d=JSON.parse(raw); }catch(e){ return; }
+    if(!d) return;
+    var i,j,k;
+    if(d.t){ for(i=0;i<TEXT_IDS.length;i++){ var e1=el(TEXT_IDS[i]); if(e1&&typeof d.t[TEXT_IDS[i]]==='string') e1.value=d.t[TEXT_IDS[i]]; } }
+    if(d.s){ for(j=0;j<SEL_IDS.length;j++){ var s1=el(SEL_IDS[j]); if(s1&&typeof d.s[SEL_IDS[j]]==='string') s1.value=d.s[SEL_IDS[j]]; } }
+    if(d.chk&&d.chk.length){
+      var boxes=document.querySelectorAll('#services-group input[type=checkbox]');
+      for(k=0;k<boxes.length;k++){
+        if(d.chk.indexOf(boxes[k].value)>-1 && !boxes[k].checked){
+          boxes[k].checked=true;
+          try{ boxes[k].dispatchEvent(new Event('change',{bubbles:true})); }
+          catch(_e){ var l=boxes[k].closest('.svc-chip'); if(l) l.classList.add('on'); }
+        }
+      }
+    }
+    validateField('name');validateField('phone');validateField('client-email');validateField('type');validateField('governorate');
+  }
+
+  function wire(){
+    var f=form(); if(!f) return;
+    ensureBar();
+    restoreDraft();
+    refresh();
+    f.addEventListener('input', function(ev){ var t=ev.target; if(t&&t.id) validateField(t.id); saveDraft(); refresh(); });
+    f.addEventListener('change', function(){ saveDraft(); refresh(); });
+    f.addEventListener('reset', function(){
+      clearDraft();
+      setTimeout(function(){ var c=f.querySelectorAll('.ok,.bad'); for(var i=0;i<c.length;i++) c[i].classList.remove('ok','bad'); refresh(); },0);
+    });
+    try{ new MutationObserver(refresh).observe(document.body,{attributes:true,attributeFilter:['class']}); }catch(e){}
+  }
+  if(document.readyState!=='loading') wire(); else document.addEventListener('DOMContentLoaded', wire);
+})();
+</script>
+
 <script>
 /* theme toggle (dark/light) + localStorage persistence */
 (function(){
