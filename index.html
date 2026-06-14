@@ -3968,6 +3968,7 @@ body::before{ display:none !important; }
   </div>
   <div class="ai-msgs" id="aiMsgs"></div>
   <div class="ai-quick" id="aiQuick">
+    <button class="ai-go" data-q="__flow__">ابدأ مشروعك</button>
     <button data-q="خدماتكم إيه؟">الخدمات</button>
     <button data-q="بتشتغلوا في أنهي مناطق؟">المناطق</button>
     <button data-q="مين شركاؤكم؟">الشركاء</button>
@@ -4273,11 +4274,12 @@ body::before{ display:none !important; }
   function toBottom(){ msgs.scrollTop = msgs.scrollHeight; }
   function addUser(t){ var d=document.createElement('div'); d.className='ai-msg user'; d.textContent=t; msgs.appendChild(d); toBottom(); }
   function typing(){ var d=document.createElement('div'); d.className='ai-typing'; d.innerHTML='<i></i><i></i><i></i>'; msgs.appendChild(d); toBottom(); return d; }
-  function addBot(html, delay){
+  function addBot(html, delay, cb){
     var ind=typing();
     setTimeout(function(){
       ind.remove();
       var d=document.createElement('div'); d.className='ai-msg bot'; d.innerHTML=html; msgs.appendChild(d); toBottom();
+      if(cb) cb();
     }, delay||800);
   }
 
@@ -4301,11 +4303,116 @@ body::before{ display:none !important; }
     return 'سؤال جميل! أقدر أساعدك في: الخدمات الهندسية، المناطق اللي بنشتغل فيها، شركائنا، أو تفاصيل مشروعك. ولو تحب تتكلم مع حد من الفريق على طول:'+waBtn(raw);
   }
 
-  function ask(q){ if(!q) return; addUser(q); addBot(answer(q), 650+Math.random()*500); }
+  /* ===== guided lead flow (frontend) ===== */
+  (function injectFlowCSS(){
+    if(document.getElementById('ai-flow-css')) return;
+    var st=document.createElement('style'); st.id='ai-flow-css';
+    st.textContent=".ai-quick .ai-go{background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;border-color:transparent;font-weight:700;}"+
+      ".ai-chips{display:flex;flex-wrap:wrap;gap:7px;margin:6px 0 2px;}"+
+      ".ai-chip{font-family:inherit;font-size:.82rem;padding:.5rem .85rem;border-radius:100px;border:1.5px solid var(--line-medium);background:var(--bg-2);color:var(--ink);cursor:pointer;transition:.2s;line-height:1.15;}"+
+      ".ai-chip:hover{border-color:var(--blue);color:var(--blue);}"+
+      ".ai-chip.on{background:var(--blue);color:#fff;border-color:var(--blue);}"+
+      ".ai-chip.go{background:linear-gradient(135deg,var(--blue),var(--green));color:#fff;border-color:transparent;font-weight:700;}";
+    document.head.appendChild(st);
+  })();
+  var flowState=null;
+  var SERVICES=['تخطيط ومخطط عام','استشارات هندسية','تصميم معماري وإنشائي','تراخيص وموافقات','إشراف على التنفيذ','تسليم المشروع','دراسة جدوى','تطوير عقاري','إدارة مشاريع','توريد مواد بناء','مقاولات وبناء','تشطيبات'];
+  function addChips(items){
+    var wrap=document.createElement('div'); wrap.className='ai-chips';
+    items.forEach(function(o){
+      var b=document.createElement('button'); b.type='button';
+      b.className='ai-chip'+(o.go?' go':'');
+      b.textContent=o.label;
+      b.setAttribute('data-val', o.val!=null?o.val:o.label);
+      wrap.appendChild(b);
+    });
+    msgs.appendChild(wrap); toBottom(); return wrap;
+  }
+  function lockChips(wrap){ if(wrap){ var b=wrap.querySelectorAll('button'); for(var i=0;i<b.length;i++) b[i].disabled=true; wrap.style.opacity='.5'; wrap.style.pointerEvents='none'; } }
+  function waBtnRaw(msg){ return '<a class="ai-wa" target="_blank" rel="noopener" href="'+WA+'?text='+encodeURIComponent(msg)+'">'+WA_SVG+' كمّل على واتساب</a>'; }
+  function startFlow(){
+    flowState={ step:0, data:{ services:[] }, chipsEl:null, awaitText:false };
+    addBot('تمام 👌 هسألك كام سؤال سريع عشان أفهم مشروعك وأظبطلك أنسب حل. اضغط الاختيارات أو اكتب بنفسك.', 500, function(){ setTimeout(flowRender, 350); });
+  }
+  function flowRender(){
+    if(!flowState) return; var s=flowState.step;
+    if(s===0){
+      var items=SERVICES.map(function(x){return {label:x,val:x};}); items.push({label:'تمام ✓', val:'__done_services__', go:true});
+      addBot('محتاج <b>أنهي خدمة/خدمات</b>؟ اختار اللي يناسبك وبعدين اضغط «تمام ✓».', 600, function(){ flowState.chipsEl=addChips(items); });
+    } else if(s===1){
+      addBot('المشروع <b>نوعه إيه</b>؟', 600, function(){ flowState.chipsEl=addChips([{label:'سكني'},{label:'تجاري'},{label:'إداري'},{label:'صناعي'},{label:'أرض للتطوير'},{label:'نوع تاني',val:'__type_other__'}]); });
+    } else if(s===2){
+      addBot('المشروع في <b>أنهي منطقة</b>؟', 600, function(){ flowState.chipsEl=addChips([{label:'الشيخ زايد'},{label:'أكتوبر'},{label:'حدائق أكتوبر'},{label:'الجيزة'},{label:'منطقة تانية',val:'__area_other__'}]); });
+    } else if(s===3){
+      addBot('عندك <b>رسومات/مخططات</b> حالية؟', 600, function(){ flowState.chipsEl=addChips([{label:'أيوه عندي'},{label:'لأ، محتاج من الأول'}]); });
+    } else if(s===4){
+      addBot('محتاج تبدأ <b>إمتى</b>؟', 600, function(){ flowState.chipsEl=addChips([{label:'عاجل'},{label:'خلال شهر'},{label:'مش مستعجل'}]); });
+    } else if(s===5){
+      flowState.awaitText='name'; addBot('تمام. ممكن <b>اسم حضرتك</b>؟', 600);
+    } else if(s===6){
+      flowState.awaitText='phone'; addBot('وأخيراً، <b>رقم موبايل/واتساب</b> نتواصل بيه؟', 600);
+    } else { flowSubmit(); }
+  }
+  function flowChip(btn){
+    if(!flowState) return; var val=btn.getAttribute('data-val'); var s=flowState.step;
+    if(s===0){
+      if(val==='__done_services__'){
+        if(!flowState.data.services.length){ addBot('اختار خدمة واحدة على الأقل 🙂', 0); return; }
+        lockChips(flowState.chipsEl); addUser(flowState.data.services.join('، '));
+        flowState.step=1; setTimeout(flowRender, 650); return;
+      }
+      btn.classList.toggle('on'); var arr=flowState.data.services, idx=arr.indexOf(val);
+      if(idx>-1) arr.splice(idx,1); else arr.push(val); return;
+    }
+    if(val==='__type_other__'){ lockChips(flowState.chipsEl); flowState.awaitText='type'; addBot('اكتبلي نوع المشروع:', 0); return; }
+    if(val==='__area_other__'){ lockChips(flowState.chipsEl); flowState.awaitText='area'; addBot('اكتبلي اسم المنطقة:', 0); return; }
+    lockChips(flowState.chipsEl); addUser(btn.textContent);
+    var d=flowState.data;
+    if(s===1) d.type=val; else if(s===2){ d.governorate=val; } else if(s===3) d.drawings=val; else if(s===4) d.timeline=val;
+    flowState.step++; setTimeout(flowRender, 650);
+  }
+  function flowText(v){
+    if(!flowState) return; var w=flowState.awaitText; flowState.awaitText=false; var d=flowState.data;
+    if(w==='type'){ d.type=v; flowState.step=2; }
+    else if(w==='area'){ d.governorate=v; flowState.step=3; }
+    else if(w==='name'){ d.name=v; flowState.step=6; }
+    else if(w==='phone'){
+      if(v.replace(/[^0-9]/g,'').length<8){ addBot('الرقم ده شكله ناقص 🙂 ابعت رقم صح من فضلك:', 0); flowState.awaitText='phone'; return; }
+      d.phone=v; flowState.step=7;
+    } else { addBot(answer(v), 650); return; }
+    setTimeout(flowRender, 650);
+  }
+  function flowSubmit(){
+    var d=flowState.data;
+    var notes='عبر المساعد الذكي'+(d.drawings?(' · رسومات: '+d.drawings):'')+(d.timeline?(' · التوقيت: '+d.timeline):'');
+    var lead={ id:'AI-'+Date.now(), name:d.name||'', phone:d.phone||'', type:d.type||'', governorate:d.governorate||'', city:d.governorate||'', city_detail:'', service:(d.services||[]).join('، '), services:d.services||[], message:notes, client_email:'', file_url:'', source:'ai-bot', ts:new Date().toISOString() };
+    try{ var ls=JSON.parse(localStorage.getItem('bx_leads')||'[]'); ls.push(lead); localStorage.setItem('bx_leads',JSON.stringify(ls)); }catch(e){}
+    var waMsg='السلام عليكم بيت الخبرة 👋\n'+(d.name?('أنا '+d.name+'\n'):'')+'محتاج: '+lead.service+'\nنوع: '+(d.type||'-')+' · منطقة: '+(d.governorate||'-')+'\n'+(d.drawings?('رسومات: '+d.drawings+' · '):'')+(d.timeline?('التوقيت: '+d.timeline):'');
+    fetch('https://uwwjzxzkdxerloiqpykj.supabase.co/functions/v1/lead-email',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        var code=(j&&j.code)?j.code:'';
+        var m='تمام يا فندم ✓ سجّلت طلبك، وهنتواصل معاك في أقرب وقت.';
+        if(code) m+='<br><br>🔑 الكود السري بتاعك: <b style="font-family:monospace">'+code+'</b>';
+        addBot(m+'<br><br>تحب تكمّل دلوقتي على واتساب؟<br>'+waBtnRaw(waMsg), 400);
+      })
+      .catch(function(){ addBot('تمام ✓ سجّلت بياناتك. تقدر تكمّل معانا على واتساب على طول:<br>'+waBtnRaw(waMsg), 400); });
+    flowState=null;
+  }
+  msgs.addEventListener('click', function(e){
+    var c=e.target.closest('.ai-chip'); if(!c||c.disabled) return;
+    if(c.getAttribute('data-val')==='__flow__'){ lockChips(c.parentNode); startFlow(); return; }
+    flowChip(c);
+  });
+  function ask(q){
+    if(!q) return;
+    if(flowState && flowState.awaitText){ addUser(q); flowText(q); return; }
+    addUser(q); addBot(answer(q), 650+Math.random()*500);
+  }
 
   function openPanel(){
     panel.classList.add('open'); panel.setAttribute('aria-hidden','false');
-    if(!greeted){ greeted=true; addBot('أهلاً بيك في <b>بيت الخبرة</b> 👋<br>أنا المساعد الذكي بتاعنا. اسألني عن خدماتنا الهندسية، أو احكيلي عن مشروعك.', 450); }
+    if(!greeted){ greeted=true; addBot('أهلاً بيك في <b>بيت الخبرة</b> 👋<br>أنا المساعد الذكي بتاعنا. اسألني عن خدماتنا، أو اضغط «ابدأ مشروعك» وأنا أمشي معاك خطوة بخطوة.', 450, function(){ addChips([{label:'ابدأ مشروعك', val:'__flow__', go:true}]); }); }
     setTimeout(function(){ if(window.matchMedia('(pointer:fine)').matches && text) text.focus(); }, 450);
   }
   function closePanel(){ panel.classList.remove('open'); panel.setAttribute('aria-hidden','true'); }
@@ -4314,7 +4421,7 @@ body::before{ display:none !important; }
   closeBtn.addEventListener('click', closePanel);
   send.addEventListener('click', function(){ var v=text.value.trim(); if(v){ ask(v); text.value=''; } });
   text.addEventListener('keydown', function(e){ if(e.key==='Enter'){ var v=text.value.trim(); if(v){ ask(v); text.value=''; } } });
-  quick.addEventListener('click', function(e){ var b=e.target.closest('button'); if(b){ ask(b.getAttribute('data-q')); } });
+  quick.addEventListener('click', function(e){ var b=e.target.closest('button'); if(b){ var dq=b.getAttribute('data-q'); if(dq==='__flow__'){ startFlow(); } else { ask(dq); } } });
 })();
 </script>
 
