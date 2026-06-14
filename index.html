@@ -89,7 +89,7 @@
   --blueprint: rgba(30,136,229,0.06);
 }
 
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; overflow-x: hidden; width: 100%; max-width: 100%; }
 
 body {
   font-family: 'Cairo', system-ui, sans-serif;
@@ -145,6 +145,7 @@ body.lang-en { direction: ltr; font-family: 'Fraunces', serif; }
   html, body { cursor: auto; }
 }
 @media (min-width: 969px) { html, body { cursor: none; } }
+  @media (hover: none), (pointer: coarse) { .cursor-dot, .cursor-ring { display: none !important; } html, body { cursor: auto !important; } }
 
 /* LOADER */
 .loader {
