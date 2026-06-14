@@ -2884,6 +2884,21 @@ body::before{ display:none !important; }
 [data-theme="dark"] .ai-chip:hover{ color:#1E88E5; border-color:#1E88E5; }
 [data-theme="dark"] .ai-quick button{ color:#1565C0; background:rgba(30,136,229,.10); border-color:rgba(30,136,229,.28); }
 </style>
+<style id="btn-polish">
+/* unified button polish: pointer, focus-visible ring, press feedback, no tap flash */
+a, button{ -webkit-tap-highlight-color: transparent; }
+button{ cursor: pointer; }
+button:disabled{ cursor: not-allowed; }
+a:focus-visible, button:focus-visible, summary:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+  outline: 2px solid var(--blue); outline-offset: 3px;
+}
+.shader-btn-primary:active, .shader-btn-ghost:active, .svc-cta:active, .legacy-cta:active, .audience-cta:active,
+.btn:active, .btn-whatsapp:active, .form-submit:active, .filter-btn:active,
+.ai-go:active, .ai-quick button:active, .ai-chip:active, .faq-q:active, .ai-wa:active,
+.lang-toggle:active, .theme-toggle:active{ transform: scale(.96); }
+.ai-close:active, .car-arrow:active, .roll-arrow:active, .to-top:active, .ai-fab:active, .float-whatsapp:active{ transform: scale(.9); }
+</style>
 </head>
 <body>
 
@@ -5236,6 +5251,33 @@ body::before{ display:none !important; }
       window.addEventListener('scroll', onScroll, {passive:true});
       onScroll();
     }
+  }
+  if(document.readyState!=='loading') wire(); else document.addEventListener('DOMContentLoaded', wire);
+  window.addEventListener('load', wire);
+})();
+</script>
+<script id="portfolio-filter">
+/* portfolio category filter (wires the .filter-btn buttons) */
+(function(){
+  function wire(){
+    var btns=[].slice.call(document.querySelectorAll('.filter-btn[data-filter]'));
+    if(!btns.length) return;
+    var cards=[].slice.call(document.querySelectorAll('.project-card[data-cat]'));
+    function apply(f){
+      cards.forEach(function(c){
+        var cats=(c.getAttribute('data-cat')||'').split(/\s+/);
+        var show=(f==='all')||cats.indexOf(f)>-1;
+        c.classList.toggle('hidden', !show);
+      });
+    }
+    btns.forEach(function(b){
+      if(b.dataset.fwired) return; b.dataset.fwired='1';
+      b.addEventListener('click', function(){
+        for(var i=0;i<btns.length;i++) btns[i].classList.remove('active');
+        b.classList.add('active');
+        apply(b.getAttribute('data-filter'));
+      });
+    });
   }
   if(document.readyState!=='loading') wire(); else document.addEventListener('DOMContentLoaded', wire);
   window.addEventListener('load', wire);
