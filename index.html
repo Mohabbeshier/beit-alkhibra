@@ -2767,6 +2767,81 @@ body::before{ display:none !important; }
 @keyframes lvrise{ from{transform:translateY(38px)} to{transform:translateY(0)} }
 @media(prefers-reduced-motion:reduce){ .legacy-visual.in .rise{ animation:none !important; } }
 </style>
+<script>try{var _t=localStorage.getItem('bk-theme');if(_t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
+<style id="dark-theme-style">
+/* ===== THEME TOGGLE BUTTON ===== */
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;margin-inline-start:.5rem;border:1px solid var(--line-medium);border-radius:10px;background:transparent;color:var(--ink-soft);cursor:pointer;transition:.25s;padding:0;flex-shrink:0;}
+.theme-toggle:hover{border-color:var(--blue);color:var(--blue);}
+.theme-toggle svg{width:17px;height:17px;display:block;}
+.theme-toggle .ic-sun{display:none;}
+[data-theme="dark"] .theme-toggle .ic-sun{display:block;}
+[data-theme="dark"] .theme-toggle .ic-moon{display:none;}
+@media(max-width:600px){.theme-toggle{width:30px;height:30px;margin-inline-start:.35rem;}.theme-toggle svg{width:15px;height:15px;}}
+
+/* ===== DARK THEME TOKENS ===== */
+[data-theme="dark"]{
+  --bg:#0a1622; --bg-2:#0f2030; --bg-3:#15293c; --bg-4:#1f3a52;
+  --ink:#e8f0f8; --ink-soft:#aebecd; --ink-deep:#ffffff;
+  --muted:#8497a6; --muted-soft:#6f8496;
+  --champagne:#42A5F5; --champagne-light:#64b5f6; --champagne-dark:#1E88E5;
+  --copper:#66BB6A; --copper-light:#81C784;
+  --green:#66BB6A; --green-dark:#43A047;
+  --blue:#42A5F5; --blue-deep:#1565C0;
+  --red:#EF5350;
+  --line:rgba(255,255,255,0.08); --line-medium:rgba(255,255,255,0.13); --line-strong:rgba(255,255,255,0.20);
+  --glow:rgba(66,165,245,0.20); --blueprint:rgba(66,165,245,0.07);
+}
+
+/* ===== STRUCTURAL SURFACES ===== */
+[data-theme="dark"] body{
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -8%, #122438 0%, transparent 55%),
+    radial-gradient(ellipse 100% 70% at 50% 108%, #0c1a28 0%, transparent 60%),
+    var(--bg);
+}
+[data-theme="dark"] nav{ background:rgba(10,22,34,0.82); }
+[data-theme="dark"] nav.scrolled{ background:rgba(10,22,34,0.95); }
+[data-theme="dark"] section#hero{ background:#0a1622 !important; }
+
+/* ===== SECTIONS FORCED WHITE (!important) ===== */
+[data-theme="dark"] #core-services{ background:#0a1622 !important; }
+[data-theme="dark"] #svc-stats{ background:#0a1622 !important; }
+[data-theme="dark"] #about,
+[data-theme="dark"] #portfolio,
+[data-theme="dark"] #audience,
+[data-theme="dark"] #rewards,
+[data-theme="dark"] #contact,
+[data-theme="dark"] #ai-banner,
+[data-theme="dark"] #cta{ background:#0a1622 !important; }
+[data-theme="dark"] #portfolio,
+[data-theme="dark"] #audience{ background:#0a1622 !important; background-color:#0a1622 !important; }
+[data-theme="dark"] #legacy{ background:#0b1a28 !important; }
+
+/* ===== CARD / PANEL SURFACES ===== */
+[data-theme="dark"] .car-card{ background:#102234; }
+[data-theme="dark"] .stats-wrap{ background:#102234; }
+[data-theme="dark"] .proc-step{ background:#102234; }
+[data-theme="dark"] .proc-stage{ background:linear-gradient(160deg,#112538,#0c1c2c); }
+[data-theme="dark"] .proc-step.active{ background:linear-gradient(90deg, rgba(66,165,245,.10), #122538); }
+[data-theme="dark"] .cc-visual{ background:linear-gradient(160deg,#13273b,#0d1d2d); }
+[data-theme="dark"] .stats-visual{ background:linear-gradient(160deg,#13273b,#0d1d2d); }
+[data-theme="dark"] .legacy-visual{ background:linear-gradient(160deg,#13273b,#0d1d2d); }
+[data-theme="dark"] .car-arrow{ background:#102234; }
+[data-theme="dark"] .roll-arrow{ background:#102234; }
+[data-theme="dark"] .car-tabs button{ background:#102234; }
+[data-theme="dark"] .car-tabs button.active{ background:rgba(66,165,245,.14); border-color:rgba(66,165,245,.40); }
+[data-theme="dark"] .svc-cta{ background:#102234; }
+
+/* ===== CONTACT FORM FIELDS ===== */
+[data-theme="dark"] #new-client-form input,
+[data-theme="dark"] #new-client-form select,
+[data-theme="dark"] #new-client-form textarea{ background:#0e2032 !important; color:var(--ink) !important; border-color:var(--line-medium) !important; }
+[data-theme="dark"] #new-client-form input::placeholder,
+[data-theme="dark"] #new-client-form textarea::placeholder{ color:var(--muted-soft); }
+[data-theme="dark"] #new-client-form option{ background:#0e2032; color:#e8f0f8; }
+[data-theme="dark"] #new-client-form .svc-chip{ border-color:rgba(66,165,245,.30); color:var(--ink-soft); }
+[data-theme="dark"] #new-client-form .svc-chip:hover{ border-color:rgba(66,165,245,.55); }
+</style>
 </head>
 <body>
 
@@ -2825,6 +2900,10 @@ body::before{ display:none !important; }
       <a href="#audience"><span data-ar>لمن نقدم</span><span data-en>For Who</span></a>
       <a href="#rewards"><span data-ar>مزايا</span><span data-en>Privileges</span></a>
       <a href="#contact"><span data-ar>تواصل</span><span data-en>Contact</span></a>
+      <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الليلي/النهاري" title="الوضع الليلي/النهاري">
+        <svg class="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </button>
       <button class="lang-toggle" id="langToggle">
         <span id="langActive" class="active">AR</span>
         <span id="langInactive">EN</span>
@@ -4708,5 +4787,25 @@ body::before{ display:none !important; }
 })();
 </script>
 
+<script>
+/* theme toggle (dark/light) + localStorage persistence */
+(function(){
+  var root=document.documentElement;
+  function apply(t){ if(t==='dark'){root.setAttribute('data-theme','dark');} else {root.removeAttribute('data-theme');} }
+  try{ var s=localStorage.getItem('bk-theme'); if(s) apply(s); }catch(e){}
+  function wire(){
+    var b=document.getElementById('themeToggle');
+    if(!b||b.dataset.wired) return; b.dataset.wired='1';
+    b.addEventListener('click',function(){
+      var dark=root.getAttribute('data-theme')==='dark';
+      var next=dark?'light':'dark';
+      apply(next);
+      try{ localStorage.setItem('bk-theme',next); }catch(e){}
+    });
+  }
+  if(document.readyState!=='loading') wire(); else document.addEventListener('DOMContentLoaded',wire);
+  window.addEventListener('load',wire);
+})();
+</script>
 </body>
 </html>
