@@ -2856,6 +2856,12 @@ body::before{ display:none !important; }
 }
 /* subtle cool tint so the whole scene reads as night, buildings still visible */
 [data-theme="dark"] #shader-canvas{ filter:saturate(.9) brightness(.78) contrast(1.04); }
+
+/* ===== DARK HERO TEXT (legible + brand colors over the dark scene) ===== */
+[data-theme="dark"] .shader-headline{ text-shadow:0 2px 24px rgba(5,12,22,.6) !important; }
+[data-theme="dark"] .shader-headline .line-2{ background:linear-gradient(135deg,#42A5F5 0%,#64B5F6 45%,#81C784 100%) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent !important; }
+[data-theme="dark"] .shader-subtitle{ color:rgba(228,238,248,.92) !important; text-shadow:0 1px 14px rgba(5,12,22,.55); }
+[data-theme="dark"] .shader-trust-badge{ color:rgba(228,238,248,.9); }
 </style>
 </head>
 <body>
