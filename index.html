@@ -5139,5 +5139,32 @@ body::before{ display:none !important; }
   window.addEventListener('load',wire);
 })();
 </script>
+
+<script id="lang-wire">
+/* language toggle (AR/EN) + localStorage persistence */
+(function(){
+  var KEY='bk-lang';
+  function apply(lang){
+    var en = (lang==='en');
+    document.body.classList.toggle('lang-en', en);
+    try{ document.documentElement.setAttribute('lang', en?'en':'ar'); }catch(e){}
+    var a=document.getElementById('langActive'), b=document.getElementById('langInactive');
+    if(a&&b){ a.classList.toggle('active', !en); b.classList.toggle('active', en); }
+  }
+  try{ var s=localStorage.getItem(KEY); if(s==='en') apply('en'); }catch(e){}
+  function wire(){
+    var t=document.getElementById('langToggle');
+    if(!t||t.dataset.wired) return; t.dataset.wired='1';
+    t.addEventListener('click', function(){
+      var en=document.body.classList.contains('lang-en');
+      var next=en?'ar':'en';
+      apply(next);
+      try{ localStorage.setItem(KEY,next); }catch(e){}
+    });
+  }
+  if(document.readyState!=='loading') wire(); else document.addEventListener('DOMContentLoaded',wire);
+  window.addEventListener('load',wire);
+})();
+</script>
 </body>
 </html>
