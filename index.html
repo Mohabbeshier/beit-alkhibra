@@ -5166,5 +5166,59 @@ body::before{ display:none !important; }
   window.addEventListener('load',wire);
 })();
 </script>
+<script id="nav-extras">
+/* nav active-section highlight + back-to-top button */
+(function(){
+  if(!document.getElementById('navx-css')){
+    var st=document.createElement('style'); st.id='navx-css';
+    st.textContent=''
+      +'.nav-menu > a.active{color:var(--champagne)}'
+      +'.nav-menu > a.active::after{transform:scaleX(1);transform-origin:left}'
+      +'.to-top{position:fixed;bottom:5.4rem;left:1.5rem;z-index:60;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;border:1px solid var(--line-medium);background:var(--bg);color:var(--blue);box-shadow:0 8px 26px rgba(13,37,56,.16);opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .3s ease,transform .3s ease,visibility .3s ease;padding:0}'
+      +'.to-top.show{opacity:1;visibility:visible;transform:translateY(0)}'
+      +'.to-top:hover{transform:translateY(-3px);border-color:var(--blue)}'
+      +'.lang-en .to-top{left:auto;right:1.5rem}'
+      +'[data-theme="dark"] .to-top{background:var(--bg-2);box-shadow:0 8px 26px rgba(0,0,0,.5)}'
+      +'@media(max-width:768px){.to-top{bottom:4.4rem;left:0.85rem;width:40px;height:40px}.lang-en .to-top{left:auto;right:0.85rem}}';
+    document.head.appendChild(st);
+  }
+
+  function wire(){
+    // ---- active nav ----
+    var links={};
+    [].forEach.call(document.querySelectorAll('.nav-menu > a[href^="#"]'), function(a){
+      var id=a.getAttribute('href').slice(1); if(id) links[id]=a;
+    });
+    var ids=[]; for(var k in links){ if(links.hasOwnProperty(k)) ids.push(k); }
+    function setActive(id){ for(var i=0;i<ids.length;i++){ links[ids[i]].classList.toggle('active', ids[i]===id); } }
+    if(ids.length && 'IntersectionObserver' in window){
+      var seen={};
+      var io=new IntersectionObserver(function(es){
+        for(var j=0;j<es.length;j++){ seen[es[j].target.id]= es[j].isIntersecting ? es[j].intersectionRatio : 0; }
+        var best=null, bv=0;
+        for(var i=0;i<ids.length;i++){ var v=seen[ids[i]]||0; if(v>bv){ bv=v; best=ids[i]; } }
+        if(best) setActive(best);
+      }, { rootMargin:'-30% 0px -50% 0px', threshold:[0,0.25,0.5,0.75,1] });
+      for(var m=0;m<ids.length;m++){ var s=document.getElementById(ids[m]); if(s) io.observe(s); }
+    }
+
+    // ---- back-to-top ----
+    if(!document.getElementById('toTopBtn')){
+      var btn=document.createElement('button');
+      btn.id='toTopBtn'; btn.className='to-top'; btn.type='button';
+      btn.setAttribute('aria-label','إلى الأعلى'); btn.setAttribute('title','إلى الأعلى');
+      btn.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>';
+      document.body.appendChild(btn);
+      btn.addEventListener('click', function(){ try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); } });
+      var ticking=false;
+      function onScroll(){ if(ticking) return; ticking=true; requestAnimationFrame(function(){ var y=window.pageYOffset||document.documentElement.scrollTop||0; btn.classList.toggle('show', y>500); ticking=false; }); }
+      window.addEventListener('scroll', onScroll, {passive:true});
+      onScroll();
+    }
+  }
+  if(document.readyState!=='loading') wire(); else document.addEventListener('DOMContentLoaded', wire);
+  window.addEventListener('load', wire);
+})();
+</script>
 </body>
 </html>
